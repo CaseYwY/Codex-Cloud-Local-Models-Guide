@@ -1,0 +1,86 @@
+{
+  "captured_at": "2026-10-21T09:26:39.0093270+08:00",
+  "kind": "sanitized allowlisted source snapshot; credentials, runtime settings, catalogs, logs and binaries excluded",
+  "files": [
+    {
+      "path": "reference/local-ninfer/models.json",
+      "sha256": "6164715daa35cd529eb11ac30c93401833992f62056625caf1c434b7bb53cd52",
+      "source_relative_path": "local-ninfer/models.json"
+    },
+    {
+      "path": "reference/local-ninfer/router/gateway.mjs",
+      "sha256": "83c7083ec91e8864469a4542da60066986f8233949e3f17931d2e050f4581563",
+      "source_relative_path": "local-ninfer/router/gateway.mjs"
+    },
+    {
+      "path": "reference/local-ninfer/router/run-background.ps1",
+      "sha256": "2f015360cdf2c09cc05b4e38cd429a9acd33a5e71362628759b7f4f6453bb2ad",
+      "source_relative_path": "local-ninfer/router/run-background.ps1"
+    },
+    {
+      "path": "reference/local-ninfer/router/supervisor.mjs",
+      "sha256": "a56142643f047409058728cb70d3b5b5bd2ba439a4f0ba061a54aae80bc574f4",
+      "source_relative_path": "local-ninfer/router/supervisor.mjs"
+    },
+    {
+      "path": "reference/local-ninfer/router/refresh-proxy.ps1",
+      "sha256": "7e2df132c7ce3799077f9df6d30ce8470ed45376c18d32cd83c4e5f5112656bd",
+      "source_relative_path": "local-ninfer/router/refresh-proxy.ps1"
+    },
+    {
+      "path": "reference/local-ninfer/router/start-router.ps1",
+      "sha256": "4716aa410312574b29c76ec15a3c9e634416d81436155fb67425388ca015afd5",
+      "source_relative_path": "local-ninfer/router/start-router.ps1"
+    },
+    {
+      "path": "reference/local-ninfer/router/build-background-launcher.ps1",
+      "sha256": "9c4495e8c7a1c20f6c6669b3c4634c1c451a10dd541f469669f0e4db92fda11c",
+      "source_relative_path": "local-ninfer/router/build-background-launcher.ps1"
+    },
+    {
+      "path": "reference/local-ninfer/router/background-launcher.cs",
+      "sha256": "9139d092618ceebcd0206b92cc28b58f18f9cb8360c95b2757b7c9250ebce9b4",
+      "source_relative_path": "local-ninfer/router/background-launcher.cs"
+    },
+    {
+      "path": "reference/local-ninfer/router/build-lifecycle.ps1",
+      "sha256": "5a1281153b1cc35fb766e5f7ada10659720dd227a443408ec89372ca2e897aa6",
+      "source_relative_path": "local-ninfer/router/build-lifecycle.ps1"
+    },
+    {
+      "path": "reference/local-ninfer/router/codex-lifecycle.cs",
+      "sha256": "9ad1bb50f29aba0c5a7ecc8bf72503eb767b0d30cea5dd1e43f571ec8272a2de",
+      "source_relative_path": "local-ninfer/router/codex-lifecycle.cs"
+    },
+    {
+      "path": "reference/local-ninfer/router/desktop-launcher.cs",
+      "sha256": "efd95a9c4d87ea23a5f2bb725652cf0d67f76f0105ef650b11c0455dda5f64a5",
+      "source_relative_path": "local-ninfer/router/desktop-launcher.cs"
+    },
+    {
+      "path": "reference/local-ninfer/router/launch-codex.ps1",
+      "sha256": "4819dec8c625d842b3c10046fba4d4c7ee5d2f420fa6d3bf54b59985ba6f986d",
+      "source_relative_path": "local-ninfer/router/launch-codex.ps1"
+    },
+    {
+      "path": "reference/local-ninfer/router/install-background-task.ps1",
+      "sha256": "251a4f1cde649ac9fb27f5a01885ae902dd14f26607affad5e58f6fcc22d4971",
+      "source_relative_path": "local-ninfer/router/install-background-task.ps1"
+    },
+    {
+      "path": "reference/local-ninfer/router/verify-background-window.ps1",
+      "sha256": "d00d77881e5008dc1418ded8393f5245a8f292f11e8ef4b988fe7622c9a3b337",
+      "source_relative_path": "local-ninfer/router/verify-background-window.ps1"
+    },
+    {
+      "path": "reference/local-ninfer/router/verify-lifecycle.ps1",
+      "sha256": "dc7966ce4119b251c655ab63e4318001e885cb9637be37167a6661bd0161639e",
+      "source_relative_path": "local-ninfer/router/verify-lifecycle.ps1"
+    },
+    {
+      "path": "reference/adapter/request-compat.mjs",
+      "sha256": "4997556fa2bedb016f823969e8bc7c07d4ffbd6e7cc8f3eeb46f8d5c66f5cba8",
+      "source_relative_path": "manager-adapter/request-compat.mjs"
+    }
+  ]
+}

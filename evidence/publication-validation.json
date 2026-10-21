@@ -1,0 +1,39 @@
+{
+  "checked_at": "2026-10-21T09:36:40.7234155+08:00",
+  "scope": "Documentation repository and reference source; not target-device installation",
+  "known_source_credential_values_absent": true,
+  "runtime_private_files_excluded": true,
+  "catalog_merge": {
+    "entries_after_merge": 11,
+    "all_cloud_and_top_level_metadata_preserved": true,
+    "invalid_inputs_rejected": 2,
+    "tested_with_real_origin_catalog": true,
+    "cli_atomic_output_passed": true,
+    "duplicate_aliases_absent": true
+  },
+  "syntax": {
+    "powershell_files": 10,
+    "powershell_parse_errors": 0,
+    "python_and_toml_and_json_parsed": true,
+    "javascript_check_passed": true,
+    "javascript_files": 3
+  },
+  "csharp": {
+    "winexe_sources_compiled": 3,
+    "output_in_temp_only": true,
+    "binaries_executed": 0
+  },
+  "preflight": {
+    "credential_files_read": false,
+    "ran_read_only": true
+  },
+  "target_devices_installed": 0,
+  "origin_services_restarted": 0,
+  "documentation_checks": {
+    "passed": true,
+    "files_checked": 42,
+    "local_links_checked": 36,
+    "reference_hashes_checked": 16,
+    "errors": []
+  }
+}

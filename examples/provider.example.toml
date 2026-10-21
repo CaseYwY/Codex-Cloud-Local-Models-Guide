@@ -1,0 +1,20 @@
+# 只合并这个表，首次隔离验证前不要切换全局选择。
+# 确认本机已登录 ChatGPT，并生成本设备自己的随机路由密钥。
+[model_providers.cloud-local-router]
+name = "Cloud GPT + local models"
+base_url = "http://127.0.0.1:18767/backend-api/codex"
+model_catalog_url = "http://127.0.0.1:18767/backend-api/codex/models"
+wire_api = "responses"
+requires_openai_auth = true
+supports_websockets = false
+request_max_retries = 0
+stream_max_retries = 0
+stream_idle_timeout_ms = 300000
+
+[model_providers.cloud-local-router.http_headers]
+X-Codex-Local-Router-Key = "REPLACE_WITH_DEVICE_LOCAL_RANDOM_KEY"
+
+# 隔离验证通过且完整目录已存在后，才在用户配置第一个 table 之前设置：
+# model = "TARGET_EXISTING_CLOUD_DEFAULT"
+# model_provider = "cloud-local-router"
+# model_catalog_json = 'C:\Users\YOUR_USER\.codex\local-ninfer\router\catalog-cache.json'

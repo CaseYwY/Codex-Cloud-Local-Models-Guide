@@ -1,0 +1,16 @@
+reports/
+.private/
+backups/
+__pycache__/
+*.pyc
+*.exe
+*.dll
+*.log
+*.tmp
+settings.json
+provider-test.toml
+config.toml
+auth.json
+catalog-cache.json
+.env
+.env.*

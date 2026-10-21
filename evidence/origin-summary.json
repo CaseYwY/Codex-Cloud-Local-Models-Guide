@@ -1,0 +1,138 @@
+{
+  "kind": "Historical origin-device evidence, reread during documentation publication; not target-device installation results",
+  "compiled_on": "2026-10-21T09:35:06.2296434+08:00",
+  "origin_versions": {
+    "desktop": "26.1013.4894.0",
+    "bundled_engine": "0.163.0-alpha.10.2",
+    "node": "26.10.0"
+  },
+  "formal_config_checks": {
+    "global_config_unchanged": true,
+    "source": "actual-verification.json",
+    "turns": [
+      {
+        "status": "completed",
+        "model": "gpt-6.1-sol",
+        "messages": [
+          "dual-route-ok"
+        ]
+      },
+      {
+        "status": "completed",
+        "model": "ninfer-minsi",
+        "messages": [
+          "dual-route-ok"
+        ]
+      },
+      {
+        "status": "completed",
+        "model": "ninfer-qiongli",
+        "messages": [
+          "dual-route-ok"
+        ]
+      }
+    ],
+    "visible_model_ids": [
+      "gpt-6.1-sol",
+      "gpt-6-astra",
+      "gpt-6-sol",
+      "gpt-6-luna",
+      "gpt-5.6-sol",
+      "gpt-5.6-terra",
+      "gpt-5.6-luna",
+      "ninfer-minsi",
+      "ninfer-qiongli"
+    ],
+    "passed": true
+  },
+  "isolated_switching": {
+    "source": "verification.json",
+    "switch_statuses": [
+      {
+        "status": "completed",
+        "item_types": [
+          "userMessage",
+          "agentMessage"
+        ],
+        "model": "gpt-6.1-sol"
+      },
+      {
+        "status": "completed",
+        "item_types": [
+          "contextCompaction",
+          "userMessage",
+          "reasoning",
+          "commandExecution",
+          "reasoning",
+          "agentMessage"
+        ],
+        "model": "ninfer-minsi"
+      },
+      {
+        "status": "completed",
+        "item_types": [
+          "userMessage",
+          "reasoning",
+          "agentMessage"
+        ],
+        "model": "ninfer-qiongli"
+      },
+      {
+        "status": "completed",
+        "item_types": [
+          "contextCompaction",
+          "userMessage",
+          "agentMessage"
+        ],
+        "model": "gpt-6.1-sol"
+      }
+    ],
+    "passed": true
+  },
+  "local_service_offline": {
+    "source": "offline-cloud-verification.json",
+    "cloud_status": "completed",
+    "model_count": 9,
+    "local_model_online": false,
+    "catalog_survives_local_error": true,
+    "passed": true,
+    "config_unchanged": true,
+    "local_status": "failed"
+  },
+  "stream_after_restart": {
+    "config_unchanged": true,
+    "passed": true,
+    "router_not_restarted_during_check": true,
+    "delta_counts": [
+      4,
+      79
+    ],
+    "source": "window-fix-backup/cloud-stream.json",
+    "statuses": [
+      "completed",
+      "completed"
+    ]
+  },
+  "current_lifecycle": {
+    "visible_window_count": 0,
+    "router_trigger_count": 0,
+    "router_restart_count": 0,
+    "idle_grace_seconds": 15,
+    "installed_at": "2026-10-21T03:59:45.1874234+08:00",
+    "source": "lifecycle-installation.json",
+    "full_desktop_exit_and_reopen_test": "Not performed. Automatic review blocked the activation test with blocked by policy; the current desktop session was retained.",
+    "native_activation_event_filter_verified": true,
+    "temporary_task_checks": {
+      "start_when_client_alive": true,
+      "restart_after_router_failure": true,
+      "stop_after_client_exit": true,
+      "remain_stopped_without_client": true,
+      "do_not_start_without_client": true
+    }
+  },
+  "current_readonly_observation": {
+    "local_model_not_restarted_for_documentation": true,
+    "router_not_restarted_for_documentation": true,
+    "manager_control_endpoint_found": false
+  }
+}
