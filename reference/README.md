@@ -1,30 +1,26 @@
-# 参考源码快照
+# 通用路由与兼容层实现要求
 
-这些文件按明确白名单从原机复制，源码SHA256见[manifest](../evidence/source-manifest.json)。它们覆盖路由和桌面生命周期，以及本地别名预算适配函数。没有包含settings.json、provider-test.toml、auth.json、完整catalog-cache.json、日志、任务XML或二进制。
+这里定义目标机 AI 实现或选择网关时的契约，不提供声称支持所有后端的现成运行包。[历史参考源码](../cases/ninfer-windows/reference/README.md) 仅供按需借鉴。
 
-**它们是原机源码快照，不是对所有设备都适用的安装器。** 在目标机的私有部署副本里适配，不改快照后仍声称哈希与原机一致。
+## 输入与输出
 
-|文件|职责|目标机必须核对|
-|---|---|---|
-|local-ninfer/models.json|两个本地目录条目|引擎schema、模型名、上下文、模态和工具能力；原机声明256K与text|
-|router/gateway.mjs|认证、分流、云端目录刷新|本地7777、默认gpt-6.1-sol检查、client_version、OpenCode本地认证来源|
-|router/supervisor.mjs|网关子进程恢复|只监督自己的gateway，不替代模型管理|
-|router/run-background.ps1|代理刷新、启动或接管supervisor|Node固定在ProgramFiles/nodejs时是否存在|
-|router/refresh-proxy.ps1|读取Windows当前代理|目标机代理类型、Node proxyEnv支持|
-|router/background-launcher.cs|无控制台启动PowerShell|编译为winexe；返回原脚本退出码|
-|router/build-background-launcher.ps1|构建启动器|系统.NET Framework64编译器路径|
-|router/codex-lifecycle.cs|应用运行时维护网关，退出后停止|WindowsApps包路径、ChatGPT.exe、当前会话、15秒宽限；CLI不计入|
-|router/desktop-launcher.cs|无窗口桌面启动入口|launch-codex.ps1存在|
-|router/build-lifecycle.ps1|编译生命周期和桌面启动器|Microsoft.CSharp和System.Management引用|
-|router/install-background-task.ps1|注册当前最新版两个任务|同名任务先备份；真实ApplicationName、事件201；无登录/分钟触发|
-|router/start-router.ps1|互斥启动与健康等待|私有settings端口、同名任务用途|
-|router/launch-codex.ps1|先路由就绪再激活应用|本机真实shell:AppsFolder包标识|
-|router/verify-background-window.ps1|只读窗口观察|固定18767与其他用户终端可能影响统计|
-|router/verify-lifecycle.ps1|独立临时任务五项验收|不应改成控制正式网关的故障测试|
-|adapter/request-compat.mjs|本地预算别名映射|嵌入已认证Responses代理；actualModelName是真实后端名|
+输入来自 [模型路由设计模板](../examples/routes.example.json) 和实际能力探测。该模板是描述格式，不是某个软件能直接加载的配置。
 
-部署所需的settings.json由目标机自行生成，完整目录由目标机自己的官方目录构建。原机从OpenCode读取本地密钥只是现有集成点；目标机没有OpenCode时改为受保护本地密钥来源即可，不需要迁移模型到OpenCode或Ollama。
+实现应输出目标机私有的路由定义、认证接入、必要协议/参数映射、完整目录生成流程、服务管理和回退步骤。每个请求可根据明确 alias 定位到实际后端与模型，未知 alias 失败。
 
-参考源码中没有完整Manager runtime适配器及模型转换工具，也没有通用app-server测试驱动。执行者依照文档补齐目标机适配与验收，未完成依赖时必须标为未完成。
+## 必须满足
 
-仓库内只提供源码，不分发可执行文件。模型、worker、Manager和第三方组件按各自上游授权取得，不因本私有交接资料而改变授权。
+1. 云端保持原身份、路由和参数语义，不由本地 preset 覆盖。
+2. 本地路由不携带云端认证或账号头，认证来源由目标机明确提供。
+3. 每个模型的参数策略独立，可为无控制、默认或已验证映射。不得全局强加固定预算或强度。
+4. Codex 面向的入口满足其实际 Responses 契约；转换层保留工具与历史，不伪造成功。
+5. 请求/响应内容编码、长度、流式错误和取消行为一致。失败向客户端明确返回。
+6. 目录保留完整云端条目，模型别名和能力与实际路由一致，原子更新且失败保留旧文件。
+7. 后台只管理自己拥有的组件；对共享后端不执行擅自重启或退出清理。
+8. 配置、密钥、缓存和原始日志均在设备私有目录，发布仓库只保存脱敏模板与证据。
+
+## 不应从案例继承的假设
+
+固定端口、模型数、模型 ID 前缀、默认云端型号、推理档位、上下文、OpenCode 认证来源、Manager 操作、Node 版本和 Windows 应用包标识，都必须重新确定。
+
+采用案例代码时先列出其全部绑定项，再在私有部署副本适配和验收；原始案例文件的哈希保留。没有完成这些适配时，不能把它包装成可直接支持 vLLM/SGLang 的通用安装脚本。

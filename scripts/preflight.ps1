@@ -1,4 +1,5 @@
-param([string]$ReportPath)
+# Optional Windows-host helper. Backend selection and ports come from target inventory.
+param([string]$ReportPath, [int[]]$Ports = @())
 $ErrorActionPreference = 'Stop'
 $codexHomeObserved = if ($env:CODEX_HOME) { $env:CODEX_HOME } else { Join-Path $env:USERPROFILE '.codex' }
 $commands = @('node', 'python', 'git') | ForEach-Object {
@@ -9,8 +10,8 @@ $packages = @(Get-AppxPackage -Name OpenAI.Codex -ErrorAction SilentlyContinue |
     Select-Object Version, PackageFamilyName, InstallLocation)
 $tasks = @(Get-ScheduledTask -ErrorAction SilentlyContinue |
     Where-Object TaskName -like 'Codex*' | Select-Object TaskName, State)
-$ports = @(Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue |
-    Where-Object LocalPort -in 7777,18767 | Select-Object LocalAddress,LocalPort,OwningProcess)
+$observedPorts = @(Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue |
+    Where-Object { $Ports -contains $_.LocalPort } | Select-Object LocalAddress,LocalPort,OwningProcess)
 $report = [pscustomobject]@{
     observed_at=(Get-Date -Format o)
     codex_home_from_current_shell=$codexHomeObserved
@@ -19,7 +20,8 @@ $report = [pscustomobject]@{
     packages=$packages
     commands=$commands
     tasks=$tasks
-    listening_ports=$ports
+    requested_ports=$Ports
+    listening_ports=$observedPorts
     read_only=$true
     credential_files_read=$false
 }

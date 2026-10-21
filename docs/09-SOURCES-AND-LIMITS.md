@@ -1,38 +1,32 @@
 # 来源与验证边界
 
-整理日期为2026-10-21。资料由原机正在使用的源码、已保存的验收JSON、本次会话记录和官方文档交叉整理。没有把历史成功写成其他设备的成功。
+更新于 2026-10-21。当前主流程是后端无关的安装与验收方法，原机结果单列为 [历史案例](../cases/ninfer-windows/README.md)。没有将一个后端的成功外推到另一个后端。
 
-## 官方能力与本机实现
+## 资料来源
 
-|依据|本交接使用的事实|边界|
-|---|---|---|
-|[ChatGPT登录通过网关](https://learn.chatgpt.com/docs/enterprise/sign-in-with-chatgpt-through-a-gateway)|ChatGPT认证与网关认证可分头传递|官方企业文档不是本机自定义双路网关的背书；原机用户级集成另有实测|
-|[网关部署与目录](https://learn.chatgpt.com/docs/enterprise/roll-out-a-gateway)|完整模型元数据、匹配客户端版本、本地目录和分发后的验收|本仓库用本机回环路由，不冒充受管企业部署|
-|[配置参考](https://learn.chatgpt.com/docs/config-file/config-reference)|provider、目录、认证及配置作用域|以目标机引擎实际接受的字段为准|
-|[网关协议要求](https://learn.chatgpt.com/docs/enterprise/gateway-compatibility)|Responses、流式、继续对话与工具闭环|具体本地后端仍需实测|
-|[流式响应](https://developers.openai.com/api/docs/guides/streaming-responses)|使用增量与完整结束事件检查流|HTTP200或一段文字不能替代完整结束|
-|[Manager仓库](https://github.com/alekk89/llama-cpp-windows-manager)|Manager来源和受支持操作入口|原机自定义NInfer runtime不是原版开箱能力|
-|[NInfer RC3发行](https://github.com/kvmem/kvmem/releases/tag/v0.18.0-ninfer-rc3)|对应GPU的发行包及校验资料|模型权重、硬件兼容性和安装由目标机验证|
+|来源|使用范围|
+|---|---|
+|[Codex 网关兼容要求](https://learn.chatgpt.com/docs/enterprise/gateway-compatibility)|客户端面向的 Responses、流式、工具、历史与错误契约|
+|[Codex 网关部署与目录](https://learn.chatgpt.com/docs/enterprise/roll-out-a-gateway)|完整目录、版本匹配与实际客户端验收|
+|[ChatGPT 登录通过网关](https://learn.chatgpt.com/docs/enterprise/sign-in-with-chatgpt-through-a-gateway)|保留 ChatGPT 登录时的认证分离；不是所有云端都必须用此机制|
+|[Codex 配置参考](https://learn.chatgpt.com/docs/config-file/config-reference)|provider、目录、作用域与生效配置|
+|[vLLM OpenAI-compatible 服务](https://docs.vllm.ai/en/stable/serving/online_serving/openai_compatible_server/)|官方文档列出 Responses；目标版本和模型仍须测试|
+|[SGLang 文档](https://docs.sglang.io/)|按安装版本查看 API、模型、工具和启动参数|
+|[SGLang OpenAI API](https://docs.sglang.io/docs/basic_usage/openai_api)|明确接口类别；不根据品牌推断目标服务具备完整 Responses|
+|[SGLang reasoning parser](https://docs.sglang.io/docs/advanced_features/separate_reasoning)|解析思考输出与模型行为；不把 parser 等同于通用强度控制|
 
-以上官方页面在整理时实际获取；Manager仓库和NInfer发行通过GitHub API读回。没有在此仓库中复制官方完整模型目录或任何账号数据。
+这些页面在本次修订时实际获取。stable/main 文档可能晚于目标安装版本；执行者应固定实际版本，再做运行验证。页面写了兼容并不等于目标设备已经通过。
 
-## 原机实测记录
+## 当前与历史证据
 
-- 正式配置下云端、敏思、穷理三路文本均完成；隔离验收包含同聊天切换和本地读取随机文件。
-- 本地模型服务关闭时，云端完成回复，本地请求明确失败，目录仍完整。
-- 路由与本地服务都关闭时，桌面引擎仍从本地目录返回完整模型和推理强度。
-- 无窗口修复后，45秒与90秒观察没有本方案的终端弹窗；网关重启后的两次真实流式回复完成。
-- 应用生命周期的临时任务启动、恢复、退出停止等五项通过；实际AppModel事件筛选已核对。
+主目录的 [发布验证](../evidence/README.md) 记录文档、模板和通用工具检查。案例的模型、工具与生命周期记录只属于该原机组合。
 
-脱敏摘要见[evidence](../evidence/README.md)。原始日志、配置、账号文件和任务XML没有上传。
+没有在本次修订中安装或测试 vLLM/SGLang 真实模型，没有改变原机正在运行的服务，也没有验证另外两台设备已安装成功。
 
-## 没有证明的内容
+## 不作统一保证
 
-- 另外两台设备已经安装或其验收已通过。
-- 正式桌面完整退出、重开及所有启动入口已在原机部署当时端到端验证。当时该操作被自动审批阻止，临时任务测试仍不替代它。
-- Windows重新登录或冷启动后的全链路。
-- 所有GPT型号、所有MCP/apps/插件、图像、语音、多Agent、长对话压缩都没有兼容问题。
-- 原机262144上下文和视觉/MTP/KV配方适合其他硬件。
-- 预算32K比16K质量更高或速度更快。本次不是性能基准。
+模型种类、数量、served ID、推理强度、思考预算、上下文、输出、采样、图像与工具支持均不作统一预设。后端支持某项 API，也不意味着每个模型和 parser 组合都支持该 API 的所有功能。
 
-2026-10-21本次整理时，原机Manager未运行，未重新启动它，也未重跑本地大模型推理；本地通过项目是保留的历史证据。文档仓库的链接、格式和源码校验是本次执行，不能冒充目标设备安装测试。
+Windows 案例的启动任务不直接适用于 Linux、macOS、容器或跨主机服务。长对话压缩、WebSocket、MCP、apps、语音、并行工具等按用户实际使用范围逐项验收。
+
+遇到未知值保留未知；无法证明参数生效时，不仅凭 HTTP 200 或模型自述标为通过。

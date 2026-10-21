@@ -1,0 +1,42 @@
+{
+  "kind": "design-only-not-a-runtime-configuration-or-codex-catalog",
+  "cloud": {
+    "existing_provider_reference": "FILL_ON_TARGET",
+    "existing_default_model": "FILL_ON_TARGET",
+    "authentication": "preserve-existing-method",
+    "parameter_policy": "preserve-existing-cloud-semantics"
+  },
+  "local_routes": [
+    {
+      "codex_alias": "local-model-a",
+      "backend_id": "backend-a",
+      "engine": "FILL_ON_TARGET",
+      "engine_version": null,
+      "upstream_model_id": "FILL_ON_TARGET",
+      "upstream_base_url": "FILL_ON_TARGET",
+      "upstream_api": "unverified",
+      "codex_facing_api": "responses",
+      "compatibility_layer_reference": null,
+      "authentication_source_reference_only": null,
+      "reasoning": {
+        "status": "unverified",
+        "mode": null,
+        "frontend_controls": null,
+        "request_mapping": null,
+        "effective_backend_values_evidence": null
+      },
+      "limits": {
+        "context_window": null,
+        "max_output_tokens": null
+      },
+      "tools": {
+        "status": "unverified",
+        "parser_or_template": null
+      },
+      "modalities_verified": null,
+      "preset": null
+    }
+  ],
+  "unknown_model_policy": "reject-with-clear-error",
+  "notes": "One record per actual route; any number of backends/models. No fixed reasoning levels or budgets. This document must be translated into the chosen gateway's actual configuration after verification."
+}

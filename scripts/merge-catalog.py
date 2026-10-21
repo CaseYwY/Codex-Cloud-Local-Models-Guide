@@ -6,7 +6,7 @@ from pathlib import Path
 import tempfile
 
 
-def merge(cloud, local, default_model):
+def merge(cloud, local, default_model, replace_local_aliases=()):
     if not isinstance(cloud, dict) or not isinstance(cloud.get("models"), list):
         raise ValueError("Cloud input must be a full Codex catalog with a models array.")
     if not isinstance(local, dict) or not isinstance(local.get("models"), list):
@@ -23,7 +23,17 @@ def merge(cloud, local, default_model):
         if len(slugs) != len(set(slugs)):
             raise ValueError(label + " has duplicate slugs.")
     local_ids = {m["slug"] for m in local["models"]}
-    kept = [m for m in cloud["models"] if m["slug"] not in local_ids]
+    cloud_ids = {m["slug"] for m in cloud["models"]}
+    replacements = set(replace_local_aliases)
+    if not replacements.issubset(local_ids):
+        raise ValueError("Replacement aliases must be present in the incoming local catalog.")
+    if default_model in local_ids:
+        raise ValueError("A local alias must not replace the existing cloud default.")
+    collisions = cloud_ids & local_ids
+    if collisions - replacements:
+        raise ValueError("Local aliases collide with cloud entries; use distinct aliases. "
+                         "Only explicitly verified prior local entries may be replaced.")
+    kept = [m for m in cloud["models"] if m["slug"] not in replacements]
     if default_model not in {m["slug"] for m in kept}:
         raise ValueError("The existing cloud default is missing from the cloud catalog.")
     highest = max([0] + [float(m.get("priority") or 0) for m in kept])
@@ -35,10 +45,12 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     for flag in ("cloud", "locals", "output", "default-model"):
         parser.add_argument("--" + flag, required=True)
+    parser.add_argument("--replace-local-alias", action="append", default=[],
+                        help="Explicitly replace a known prior local alias, never an official cloud entry.")
     args = parser.parse_args()
     cloud = json.loads(Path(args.cloud).read_text(encoding="utf-8-sig"))
     local = json.loads(Path(args.locals).read_text(encoding="utf-8-sig"))
-    result = merge(cloud, local, args.default_model)
+    result = merge(cloud, local, args.default_model, args.replace_local_alias)
     output = Path(args.output).resolve()
     if output in (Path(args.cloud).resolve(), Path(args.locals).resolve()):
         raise ValueError("Output must be separate from both input files.")

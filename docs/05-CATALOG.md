@@ -1,37 +1,35 @@
-# 完整模型目录与离线菜单
+# 完整模型目录
 
-## 两个文件不同
+目录描述的是客户端应如何使用模型，不会给引擎添加能力。保留目标账号原有云端目录，再为实际本地模型生成与当前 Codex schema 匹配的条目。
 
-`local-ninfer/models.json` 只保存两个本地条目，是合并输入。`router/catalog-cache.json` 是完整云端目录加本地条目，才可作为全局 `model_catalog_json`。
+## 构建步骤
 
-原机曾因目录只包含本地条目而丢失云端模型；启动时依赖在线目录又导致后台未运行时菜单空白。最终做法是启动直接读完整本地文件，推理期间在后台刷新，刷新失败保留已有文件。
+1. 取得当前实际引擎对应的完整云端目录。使用目标设备自己的认证；保留全部云端条目、隐藏项、顶层对象及每个字段。
+2. 为每个实际本地模型选择唯一别名，并绑定已验证路由。数量不限，不要求两个档位，也不强制多个别名。
+3. 按后端、模型和运行配置确定上下文、输出、工具与模态。不能复制云端强模型条目而保留本地不具备的能力。
+4. 按 [推理规则](11-REASONING-AND-PARAMETERS.md) 生成支持选项。允许无推理控制、模型默认或经验证的控制；不存在的强度不出现在目录中。
+5. 本地条目的具体 JSON 字段取决于客户端 schema。空选项、默认级别等表示法要通过目标客户端验证，不能把示例数组视为所有版本都通用。
+6. 校验默认云端仍存在、本地别名不冲突、目录与路由一致。使用同目录临时文件原子替换，刷新失败保留旧文件。
+7. 文件存在后再将实际绝对路径写入正确配置作用域，并重新加载客户端。
 
-## 获取与合并
+普通 `/v1/models` 的 ID 列表或经归一化的简略 model/list 输出不是完整 Codex 目录。目录中的 reasoning options 和工具字段要符合当前客户端版本。
 
-1. 确认目标机桌面内置引擎版本和自己的可用云端默认。
-2. 取得与该引擎匹配的完整官方目录。可用经目标设备自己登录认证的网关 `/models`引导；若配置已有 model_catalog_json，须处理其优先级。也可从匹配版本的官方Codex目录起步，再以目标账号的实际可用性核对。不能用app-server中经过归一化的简略model/list输出冒充完整目录。
-3. 保留官方顶层对象、所有模型条目及每个条目的完整元数据，包括隐藏模型。不能只抄模型ID、显示名与context_window。
-4. 追加本地条目，保持slug唯一，名称与网关别名完全一致。移除已有同名本地别名后再追加，避免重复。
-5. 按当前schema检查本地元数据，特别是supported_reasoning_levels、工具方式、input_modalities、context_window等；不得宣称后端没有的能力。
-6. 写入同目录临时文件后原子替换，保留旧缓存直至新文件可解析且校验通过。
-7. 在配置前确认文件存在，将实际绝对路径写在TOML第一个table之前。重启客户端重新加载。
+## 合并工具
 
-仓库提供 [merge-catalog.py](../scripts/merge-catalog.py) 执行保留字段的合并，它不联网、不获取登录令牌。`--cloud`必须指向完整目录而非简略列表，`--default-model`使用目标机已有默认。
+[merge-catalog.py](../scripts/merge-catalog.py) 接收完整云端目录和目标机生成的本地目录，不联网、不获取凭据，不预设引擎、模型数量或推理级别。其字段检查是基础结构检查，不能替代客户端 schema 验证。
 
-```powershell
-python .\scripts\merge-catalog.py `
-  --cloud <本机完整云端目录.json> `
-  --locals <本机local-ninfer\models.json> `
-  --output <本机router\catalog-cache.json> `
-  --default-model <本机现有云端默认ID>
+```text
+python scripts/merge-catalog.py --cloud CLOUD_FULL.json --locals LOCAL_FULL.json --output COMBINED.json --default-model EXISTING_CLOUD_DEFAULT
 ```
 
-参考gateway也会合并，但其默认云端检查和client_version仍绑定原机，需要适配。目录中的官方模型数量会随版本、账号和时间变化，不能把“9项”作为通用成功条件。
+默认拒绝本地别名与云端条目同名，防止误删云端模型。只有确认输入是旧的混合目录、冲突项属于之前自己添加的本地别名时，才用可重复的 `--replace-local-alias ALIAS` 显式替换。不得用它覆盖官方云端 ID 或原云端默认。
 
-## 离线验收
+目录模板不能准确表达未知模型的完整能力，所以仓库提供的是能力清单模板，执行者按目标版本生成实际 LOCAL_FULL.json。不要把 [路由设计模板](../examples/routes.example.json) 当成 Codex 目录。
 
-菜单读取测试要区分两种离线：NInfer未运行时仍有完整菜单，网关未运行时也能由本地文件加载菜单。第二种情况下仍不能推理。生产网关正在被使用时不要为测菜单而停止它，可用不连接网关的隔离目录读取测试或空闲窗口验证。
+## 离线与刷新
 
-目标机报告应同时记录菜单条目、默认项、推理强度和实际桌面画面。model/list成功只说明引擎返回的列表，不能替代目视确认桌面菜单。
+使用完整本地目录可以让菜单不依赖网关或本地引擎在线。它只解决菜单读取，网关离线仍可能影响经过它的云端推理。
 
-本地目录是Codex特定schema。原机reference中的models.json适配0.163.0-alpha.10.2；未来版本需要验证字段。官方说明见 [模型目录分发](https://learn.chatgpt.com/docs/enterprise/roll-out-a-gateway)。
+本地服务关闭时，云端应按设计继续可用，本地明确报错。网关离线时目录仍可读的测试应在隔离环境或空闲窗口进行，不停止活动聊天所需的服务。
+
+完整目录还要在真实桌面/CLI 上验证显示、默认项、切换及推理控件。引擎列表通过不等于桌面界面已验证。官方说明见 [模型目录分发](https://learn.chatgpt.com/docs/enterprise/roll-out-a-gateway)。

@@ -1,7 +1,7 @@
-# 脱敏证据
+# 当前验证与历史证据
 
-[origin-summary.json](origin-summary.json) 由原机保存的验收JSON白名单提取，只包含模型ID、状态、测试类型和验证边界。本次整理重新读取这些记录，没有重新运行本地模型或打断网关。
+通用流程的文档、模板与工具验证记录见 [generalization-validation.json](generalization-validation.json)。这些检查不等于某个后端或目标设备已经安装完成。
 
-[source-manifest.json](source-manifest.json) 记录本次允许分发源码的相对路径与SHA256，用来核对快照。运行时秘密文件、完整官方模型目录、日志、机器用户名、进程参数和任务XML均未上传。
+原机 NInfer 的真实推理、工具、离线和生命周期记录，以及源码哈希，已完整归入 [案例证据](../cases/ninfer-windows/evidence/README.md)。其数值和成功结论只属于那个案例。
 
-这些证据属于原机。目标设备必须单独填写报告，不能复制此摘要作为自己的验收结果。
+本次没有重启任何模型或网关，没有安装 vLLM/SGLang，也没有将推理强度、预算或模型数量设成通用默认。

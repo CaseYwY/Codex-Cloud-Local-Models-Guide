@@ -48,13 +48,22 @@ def main():
                 destination = (path.parent / unquote(target.split("#", 1)[0])).resolve()
                 if not destination.is_relative_to(ROOT) or not destination.exists():
                     errors.append(relative + ": broken local link: " + target)
-    manifest = json.loads((ROOT / "evidence/source-manifest.json").read_text(encoding="utf-8-sig"))
-    for item in manifest["files"]:
-        path = ROOT / item["path"]
-        if hashlib.sha256(path.read_bytes()).hexdigest() != item["sha256"]:
-            errors.append(item["path"] + ": snapshot hash differs")
+    hash_count = 0
+    for manifest_path in ROOT.rglob("source-manifest.json"):
+        if set(manifest_path.relative_to(ROOT).parts) & EXCLUDED:
+            continue
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8-sig"))
+        snapshot_root = manifest_path.parent.parent
+        for item in manifest["files"]:
+            path = (snapshot_root / item["path"]).resolve()
+            if not path.is_relative_to(snapshot_root.resolve()) or not path.is_file():
+                errors.append(item["path"] + ": missing or invalid snapshot path")
+                continue
+            hash_count += 1
+            if hashlib.sha256(path.read_bytes()).hexdigest() != item["sha256"]:
+                errors.append(path.relative_to(ROOT).as_posix() + ": snapshot hash differs")
     result = {"passed": not errors, "files_checked": len(files), "local_links_checked": links,
-              "reference_hashes_checked": len(manifest["files"]), "errors": errors}
+              "reference_hashes_checked": hash_count, "errors": errors}
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0 if not errors else 1
 

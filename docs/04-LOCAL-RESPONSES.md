@@ -1,56 +1,38 @@
-# 本地 NInfer 服务与协议适配
+# 本地服务的协议接入
 
-## 安装路径选择
+Codex 面向的模型入口要符合目标版本使用的 Responses 契约。后端可以原生实现，也可以由兼容层提供。引擎自称 OpenAI-compatible 不表示所有 API、模型与参数都支持。
 
-目标机已有认证的 NInfer `/v1/responses` 服务时，优先复用并做兼容性检查。它不必来自 Manager，也不必使用原机端口。
+## 接入分支
 
-没有本地服务时，先从 [NInfer RC3 官方发行](https://github.com/kvmem/kvmem/releases/tag/v0.18.0-ninfer-rc3) 选择对应 GPU的运行包，核对其校验和与说明，再准备兼容模型。该发行经查询包含 RTX30/40/50三类包，不能给所有设备统一安装 RTX50包。模型格式、转换关系、显存与内存配方都由目标机核对。本仓库不提供权重或转换产物。
-
-若采用 [llama.cpp Windows Manager](https://github.com/alekk89/llama-cpp-windows-manager)，读取本机随软件安装的 AGENTS.md并使用 llwmctl。原机通过自定义 runtime适配 NInfer；早期原版 Manager拒绝无 llama-server入口的 runtime与 `.ninfer` 模型登记，不能把原机集成能力归因于原版直接支持。
-
-原机 Manager适配层还包含 runtime注册、启动参数映射、来源GGUF与转换结果校验、worker哈希、临时后端密钥和模型元数据脱敏。这些不在本仓库的完整分发范围内。尚无该层的设备可按官方包建立原生服务，再为别名加入最小请求适配；也可单独完成 Manager runtime集成。仅复制 request-compat.mjs不会自动得到完整 Manager安装。
-
-## 原机的请求预算补丁
-
-参考文件：[request-compat.mjs](../reference/adapter/request-compat.mjs)。
-
-`normalizeResponsesBytes(bytes, actualModelName)` 对两个别名执行：
-
-|字段|敏思|穷理|
+|后端实际能力|接入方式|先验证|
 |---|---|---|
-|model|替换为真实 worker模型名|同左|
-|reasoning.effort|xhigh|xhigh|
-|thinking_budget|16384|32768|
-|max_output_tokens|24576|40960|
-|chat_template_kwargs|启用并保留思考，xhigh|同左|
+|Responses 及所需语义已满足|原生转发，仅做必要路由与认证|SSE、终止、工具、续问与参数|
+|有 Responses 但部分语义有差异|限制为已支持能力，或最小适配后再验收|缺失字段、历史、工具 schema 和错误|
+|只有 Chat Completions 或其他协议|使用完整兼容层接收 Responses 并转换|请求、响应、流式事件与工具历史双向转换|
+|必要能力无法补齐|报告缺口，保留云端|不以文本演示冒充 Agent 兼容|
 
-该函数保留 input、instructions、tools、call_id、function_call_output等其他请求字段。除这两个别名之外，Responses原始字节不变。目标机若采用别的本地后端，需要实现等价语义，不能假定上述 NInfer扩展字段普遍通用。
+只改 `/responses` 为 `/chat/completions` 不构成转换。兼容层应正确处理 instructions、角色与内容项、输出限制、工具定义、function_call、call_id、function_call_output、历史重放、事件 ID、文本增量、错误和最终状态。
 
-原机在适配代理的 `/v1/responses` POST路径使用它，并根据改写后字节重算 Content-Length。Chat Completions另走 normalizeChatBytes，不能混用 Responses和Chat协议。
+有图像、结构化输出或其他模态时也要保真转换；未验证的能力不能在目录中宣告。遇到不支持的工具形式，不能删除工具或历史来凑成功。
 
-```javascript
-import { normalizeResponsesBytes } from './request-compat.mjs';
+## 流式与继续对话
 
-// 放在已有的、经过认证的 Responses 代理内。
-// actualModelName 来自目标机真实服务，不从原机照搬。
-const rewritten = normalizeResponsesBytes(originalBodyBytes, actualModelName);
-headers['content-length'] = rewritten.length;
-delete headers['transfer-encoding'];
-// 转发到目标机已验证的 NInfer /v1/responses。
-```
+逐步观察到文本增量并最终成功完成，才算流式通过。不能把后端异常包装成 completed，或只返回一段普通 JSON 来模拟 SSE。
 
-## 必须单独验证的能力
+完整历史重放和增量/服务端有状态继续不是同一机制。使用 previous_response_id 或 WebSocket 时，另行验证后端和兼容层的状态管理；不支持时采用客户端可用且已验证的完整上下文路径，不能随意丢弃引用字段。`/responses/compact` 等实际用到的端点需分别验证。
 
-- 真实 Responses文本响应，不是只查询 models或Chat Completions。
-- SSE文本增量、终止事件和完整回复。返回HTTP 200但随后断流仍算失败。
-- function_call与function_call_output能够往返；call_id、原始arguments和对话历史未被删改。
-- 两档请求实际到达 NInfer，预算与输出上限生效。记录请求结构和原生日志的有效值，不能只看菜单文案。
-- 错误的本地密钥被拒绝；缺失本地服务时明确失败，不改路由到云端。
+## 别名和参数映射
 
-工具 schema随 Codex版本变化。原机本地专用 profile曾临时使用标准function工具兼容设置 `prefer_mxc=true` 并控制多Agent上下文；这些不是要求全局关闭工具生态的安装步骤。遇到 namespace等后端不支持的工具形式，应核对当前 schema、在隔离测试中选择支持形式，或做保真适配，不能删除工具来声称 Agent接入成功。
+将客户端 alias 映射到实际 served model ID。对请求只做清单里允许的变更，保留其余有效字段。每个模型有自己的映射，不能用一套本地默认覆盖所有请求或影响云端。
 
-## 硬件与模型参数
+推理控制按 [参数规则](11-REASONING-AND-PARAMETERS.md) 处理，可能完全不需要映射。某个模型不识别 reasoning 字段时，先通过目录避免客户端发出错误控制；如仍需兼容处理，只处理已经确认的无控制/默认语义，未知显式请求应报错，不能静默忽略。
 
-262144上下文、CPU视觉、MTP4、Host/SSD KV预算是原机特定模型和runtime配方，不能根据 Codex目录声明直接启用。新设备以实际 profile、worker帮助和可用资源为准。推理服务尚不支持图像时，本地目录保持 text模态；不因模型名中有 Vision就宣布 Codex图像路径通过。
+请求改写或解压后重算 Content-Length 并正确处理 Content-Encoding；响应字段和编码也要一致。不要把传输解码错误一概当作模型错误。
 
-本次接入并未重新测量不同预算的效率或质量，也没有证明32K优于16K。判断安装成功与做性能排名是不同任务。
+## 认证和错误
+
+云端认证只发给原云端目标。本地或其他推理路由只使用其自己的认证策略。请求不能任意指定上游 URL，模型路由应来自受控清单。
+
+区分未知模型、客户端认证失败、后端认证失败、未支持参数、限流和上游不可用，避免全部变成无说明的 500。日志只记录诊断所需的脱敏状态，不持久化令牌或原始敏感请求。
+
+具体核对项见 [后端矩阵](10-BACKEND-COMPATIBILITY.md)。官方契约见 [Codex 网关兼容要求](https://learn.chatgpt.com/docs/enterprise/gateway-compatibility)。
