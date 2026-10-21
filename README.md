@@ -1,57 +1,92 @@
-# Codex 保留云端模型并接入本地推理服务
+# Use cloud and local models in Codex
 
-这是给 AI 执行者使用的通用接入流程。目标是在保留 Codex 原有云端模型、认证和默认选择的同时，增加目标设备实际可用的本地模型。
+English | [Chinese](README.zh-CN.md)
 
-后端可以是 vLLM、SGLang、llama.cpp、NInfer、Ollama、LM Studio 或其他推理服务。**模型种类、数量、上下文、输出上限、推理强度和思考预算都由目标后端、模型与版本决定，不预设固定值。** 这里列举后端不表示它们的所有版本都满足 Codex 的接口要求。
+A practical workflow for adding local inference services to Codex while keeping your existing cloud models, authentication, and default model. Written for users and AI assistants carrying out the installation on each device.
 
-从 [AI 执行入口](docs/00-AI-HANDOFF.md) 开始，按 [通用安装流程](docs/03-INSTALL.md) 操作，最后填写 [设备验收报告](examples/installation-report.md)。两台设备分别盘点、适配和验收，不共享凭据或直接复制配置。
+The workflow can be adapted to **vLLM, SGLang, llama.cpp, NInfer, Ollama, LM Studio, and other inference services**. Compatibility depends on the actual backend version, model, API, and deployment configuration. Listing a backend here does not mean every version or model has been tested with Codex.
 
-## 通用流程
+Model names, model counts, context limits, output limits, reasoning controls, and thinking budgets are determined on the target device. The guide does not impose a particular model or reasoning preset.
+
+## What this repository provides
+
+- A workflow for inspecting an existing setup, checking capabilities, adapting protocols, configuring routes, and preserving cloud access.
+- Guidance for models with no reasoning controls, models that use their own defaults, and models with verified effort levels, switches, budgets, or presets.
+- Templates for device inventories, model routes, provider configuration, and installation reports.
+- Verification steps for real streamed responses, tool calls, conversation history, authentication boundaries, offline behavior, and rollback.
+- A historical Windows NInfer case with source snapshots and recorded evidence, kept separate from the general workflow.
+
+This repository provides documentation, templates, and implementation requirements. It is not a universal installer or a ready-made gateway for every backend. It does not distribute model weights, runtime binaries, credentials, or account sessions.
+
+## How the workflow works
 
 ```mermaid
 flowchart LR
-    A[盘点客户端与已有服务] --> B[确认模型和后端实际能力]
-    B --> C{Codex Responses 契约是否满足}
-    C -->|已满足| D[配置路由与认证]
-    C -->|未满足| E[实现并验证兼容层]
+    A[Inspect the client and existing services] --> B[Verify model and backend capabilities]
+    B --> C{Required Responses behavior supported?}
+    C -->|Yes| D[Configure routing and authentication]
+    C -->|No| E[Implement and verify a compatibility layer]
     E --> D
-    D --> F[合并完整云端与本地目录]
-    F --> G[隔离验证回复与工具循环]
-    G --> H[最小配置部署与生命周期]
-    H --> I[目标设备验收和回退]
+    D --> F[Preserve the full cloud catalog and add local models]
+    F --> G[Test responses and tool loops in isolation]
+    G --> H[Deploy minimal changes and manage lifecycle]
+    H --> I[Verify on the target device and document rollback]
 ```
 
-关键是验证实际服务能力。OpenAI-compatible、一个 `/models` 列表或 Chat Completions 的成功回复，都不足以证明 Codex 可用。Codex 面向的入口需要满足当前客户端使用的 Responses、流式、工具和历史语义。
+The endpoint used by Codex must satisfy the Responses behavior required by the actual client, including streaming, tools, and conversation history. An OpenAI-compatible label, a model list, or a successful Chat Completions request alone does not establish that compatibility. Where necessary, the workflow calls for a verified protocol conversion layer.
 
-## 文档入口
+Cloud and local authentication remain separate. Existing cloud defaults and unrelated client settings are preserved. Shared inference services should not be stopped simply because one Codex window closes.
 
-|入口|内容|
+## Get started
+
+The detailed installation documents and templates are currently written in Chinese. This English overview links to those documents; it does not imply that the complete guide has been translated.
+
+1. Read the [instructions for installation agents](AGENTS.md) and [AI handoff](docs/00-AI-HANDOFF.md).
+2. Follow the [general installation workflow](docs/03-INSTALL.md).
+3. Check the [backend compatibility matrix](docs/10-BACKEND-COMPATIBILITY.md) and [reasoning and parameter rules](docs/11-REASONING-AND-PARAMETERS.md) for each model.
+4. Verify the actual deployment and complete the [installation report](examples/installation-report.md).
+
+Each device needs its own inventory, credentials, configuration, and evidence. Do not copy another device's account files or assume that a historical case proves compatibility on a new setup.
+
+## Documentation map
+
+| Document | Purpose |
 |---|---|
-|[AI 执行入口](docs/00-AI-HANDOFF.md)|可直接转发的安装指令|
-|[架构](docs/01-ARCHITECTURE.md)|模型、推理引擎、协议、路由、目录和进程的关系|
-|[方案演进](docs/02-HISTORY.md)|如何从原机经验抽取通用流程|
-|[通用安装](docs/03-INSTALL.md)|跨平台盘点、隔离验证、部署和交付|
-|[后端协议](docs/04-LOCAL-RESPONSES.md)|原生 Responses 与协议转换的接入分支|
-|[模型目录](docs/05-CATALOG.md)|保留云端条目，按实际能力添加本地模型|
-|[验收](docs/06-VERIFICATION.md)|任意数量模型、参数、工具及离线行为|
-|[故障排查](docs/07-TROUBLESHOOTING.md)|按失败层定位问题|
-|[回退](docs/08-ROLLBACK.md)|恢复原有云端和客户端配置|
-|[来源与边界](docs/09-SOURCES-AND-LIMITS.md)|官方资料、历史实测和当前未实测项|
-|[后端适配矩阵](docs/10-BACKEND-COMPATIBILITY.md)|vLLM、SGLang 等后端的核对方法|
-|[推理和参数](docs/11-REASONING-AND-PARAMETERS.md)|无推理控制、默认值、强度、开关和预算|
-|[路由实现要求](reference/README.md)|供 AI 生成目标机实现的契约|
-|[NInfer Windows 案例](cases/ninfer-windows/README.md)|原机历史源码、配方和证据，按需参考|
+| [AI handoff](docs/00-AI-HANDOFF.md) | Instructions to give an AI assistant on the target device |
+| [Architecture](docs/01-ARCHITECTURE.md) | Models, engines, protocols, routing, catalogs, and lifecycle |
+| [Design history](docs/02-HISTORY.md) | How the original case became a general workflow |
+| [Installation](docs/03-INSTALL.md) | Inspection, isolated testing, deployment, and delivery |
+| [Protocol integration](docs/04-LOCAL-RESPONSES.md) | Native Responses support and conversion requirements |
+| [Model catalogs](docs/05-CATALOG.md) | Preserve cloud metadata and add accurate local entries |
+| [Verification](docs/06-VERIFICATION.md) | Check real model, tool, parameter, and offline behavior |
+| [Troubleshooting](docs/07-TROUBLESHOOTING.md) | Identify the failing layer before changing the setup |
+| [Rollback](docs/08-ROLLBACK.md) | Restore the original cloud connection and configuration |
+| [Sources and limits](docs/09-SOURCES-AND-LIMITS.md) | Separate documented capabilities from measured results |
+| [Backend compatibility](docs/10-BACKEND-COMPATIBILITY.md) | Inspect vLLM, SGLang, and other services by actual capability |
+| [Reasoning and parameters](docs/11-REASONING-AND-PARAMETERS.md) | Handle defaults and supported controls without fixed presets |
+| [Implementation requirements](reference/README.md) | Requirements for a target-specific router or compatibility layer |
+| [Historical NInfer case](cases/ninfer-windows/README.md) | Original Windows example, source snapshots, and evidence |
 
-## 两个层次
+The files under `cases/ninfer-windows/` describe one historical deployment. Its ports, model aliases, budgets, metadata, and Windows startup components are case-specific examples, not defaults for other backends.
 
-主目录的流程、模板和工具适用于不同后端。路由清单、能力探测和用户已有配置决定最终实现，不要求安装特定 Manager 或改用某个模型。
+## Give this task to an AI assistant
 
-`cases/ninfer-windows/` 保存原机 NInfer 个案。里面的端口、两个预算别名、思考参数、Windows 启动器和模型元数据只属于那个案例，不能当成主流程默认值。案例源码不是通用多后端网关安装包。
+```text
+Read AGENTS.md, docs/00-AI-HANDOFF.md, and docs/03-INSTALL.md.
+Keep this device's existing Codex cloud models, authentication, and default model.
+Inspect the chosen local backend, version, models, APIs, and capabilities first.
+Use native Responses support where verified, or implement and test the required compatibility layer.
+Do not copy the historical case's model count, reasoning levels, budgets, ports, or hardware settings.
+Test in isolation before deploying minimal changes. Do not interrupt shared services or expose credentials.
+Report real results, failures, untested features, and rollback steps for this device.
+```
 
-## 分发给其他设备
+## Verify the repository
 
-设备取得本私有仓库读取权限后，可将以下文字发给各自的 AI：
+With Python 3.11 or later, run:
 
-> 读取 AGENTS.md、docs/00-AI-HANDOFF.md 和 docs/03-INSTALL.md。在当前设备保留 Codex 云端模型，接入已有或选定的本地推理服务。后端和模型不限。先盘点版本、接口、模型、认证与能力，再决定是否需要兼容层；不照搬案例的模型数量、推理强度或预算。隔离验证后最小部署，并逐项报告真实验收结果。
+```text
+python scripts/validate-repository.py
+```
 
-这是一份通用流程和实现契约，不是宣称已在所有引擎上跑通的一键安装器。本次修改没有在目标设备安装模型，也没有重启原机服务。
+This checks documentation links, example formats, source snapshot hashes, and publication exclusions. It does not run model inference or certify a target deployment. Backend compatibility and installation results must be established on each target device.
